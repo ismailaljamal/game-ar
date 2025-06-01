@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <title>لعبة خريطة - الدول العربية</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet/dist/leaflet.css"
+  />
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      direction: rtl;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      background-color: #4caf50;
+      color: white;
+      padding: 10px;
+    }
+    #map {
+      height: 80vh;
+      width: 100%;
+    }
+    #result,
+    #score {
+      font-size: 1.5em;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="question">🎯 أين تقع الدولة؟</h1>
+  <div id="map"></div>
+  <div id="result"></div>
+  <div id="score">النقاط: 0</div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    const arabCountries = [
+      { name: "مصر", lat: 26.8, lng: 30.8 },
+      { name: "السعودية", lat: 24.7, lng: 46.7 },
+      { name: "الجزائر", lat: 28.0, lng: 1.7 },
+      { name: "المغرب", lat: 31.8, lng: -6.0 },
+      { name: "تونس", lat: 33.8, lng: 9.4 },
+      { name: "سوريا", lat: 34.8, lng: 38.9 },
+      { name: "العراق", lat: 33.2, lng: 44.4 },
+      { name: "الإمارات", lat: 24.4, lng: 54.4 },
+      { name: "لبنان", lat: 33.8, lng: 35.8 },
+      { name: "الأردن", lat: 31.9, lng: 35.9 },
+      { name: "ليبيا", lat: 26.3, lng: 17.2 },
+      { name: "موريتانيا", lat: 20.2, lng: -10.5 },
+      { name: "السودان", lat: 12.8, lng: 30.2 },
+      { name: "فلسطين", lat: 31.9, lng: 35.2 },
+      { name: "عُمان", lat: 21.0, lng: 57.0 },
+      { name: "الكويت", lat: 29.3, lng: 47.7 },
+      { name: "البحرين", lat: 26.0, lng: 50.5 },
+      { name: "قطر", lat: 25.3, lng: 51.5 },
+      { name: "جيبوتي", lat: 11.6, lng: 43.1 },
+      { name: "الصومال", lat: 5.1, lng: 46.0 },
+      { name: "جزر القمر", lat: -11.7, lng: 43.3 },
+      { name: "جنوب السودان", lat: 6.9, lng: 31.6 }
+    ];
+
+    let remainingCountries = [...arabCountries];
+    let currentCountry = null;
+    let score = 0;
+
+    const map = L.map('map').setView([26.8206, 30.8025], 3);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+    }).addTo(map);
+
+    function getRandomCountryFromRemaining() {
+      const index = Math.floor(Math.random() * remainingCountries.length);
+      return remainingCountries.splice(index, 1)[0];
+    }
+
+    function showNewQuestion() {
+      if (remainingCountries.length === 0) {
+        document.getElementById('question').textContent = '🎉 انتهت اللعبة!';
+        document.getElementById('result').textContent = `أحرزت ${score} من ${arabCountries.length}`;
+        return;
+      }
+      currentCountry = getRandomCountryFromRemaining();
+      document.getElementById('question').textContent = `🎯 أين تقع ${currentCountry.name}؟`;
+      document.getElementById('result').textContent = '';
+    }
+
+    function getDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    map.on('click', function (e) {
+      const clickedLat = e.latlng.lat;
+      const clickedLng = e.latlng.lng;
+
+      const distance = getDistance(clickedLat, clickedLng, currentCountry.lat, currentCountry.lng);
+
+      if (distance < 500) {
+        document.getElementById('result').textContent = '✅ أحسنت! إجابة صحيحة';
+        score++;
+      } else {
+        document.getElementById('result').textContent = '❌ خطأ. حاول مرة أخرى.';
+      }
+
+      document.getElementById('score').textContent = `النقاط: ${score}`;
+      setTimeout(showNewQuestion, 1500);
+    });
+
+    showNewQuestion();
+  </script>
+</body>
+</html>
